@@ -1,5 +1,5 @@
 # Generate data with structural break in beta1
-get.data <- function(n, phi, psi, b0, delta) {
+get.data <- function(n, phi, psi, b0, delta, n_breaks=1) {
   # Generate time points
   t <- seq(0, 1, length.out = n)
   
@@ -8,34 +8,47 @@ get.data <- function(n, phi, psi, b0, delta) {
   x[1] <- rnorm(1, 10, 1)
   
   # Generate AR(1) process with coefficient 0.3
-  for(i in 2:n) {
-    x[i] <- 0.3 * x[i-1] + rnorm(1)
+  for (i in 2:n) {
+    x[i] <- 0.3 * x[i - 1] + rnorm(1)
   }
   
   # Unconditional variance AR(1) process
-  std_ar <- sqrt(1 / (1-0.3^2))
+  std_ar <- sqrt(1 / (1 - 0.3 ^ 2))
   
   # Generate ARMA(1,1) errors
-  sigma_eps <- sqrt((1 - phi^2)/(2*(1 + psi^2 + 2*phi*psi)))
+  sigma_eps <- sqrt((1 - phi ^ 2) / (2 * (1 + psi ^ 2 + 2 * phi * psi)))
   eps <- rnorm(n, 0, sigma_eps)
   u <- numeric(n)
   u[1] <- eps[1]
   
-  for(i in 2:n) {
-    u[i] <- phi * u[i-1] + eps[i] + psi * eps[i-1]
+  for (i in 2:n) {
+    u[i] <- phi * u[i - 1] + eps[i] + psi * eps[i - 1]
   }
   
-  # Define coefficient function β₁(·) with structural break at t = 0.5 size 0.1
-  beta1 <- function(t) {
-    ifelse(t <= 0.5, b0, b0*delta)  #break
+  b1 <- b0 - delta
+  b2 <- b0
+  
+  if (n_breaks == 1) {
+    # Define coefficient function β₁(·) with structural break at t = 0.5 size 0.1
+    beta1 <- function(t) {
+      ifelse(t <= 0.5, b0, b1)  #break
+    }
+  }
+  else if (n_breaks == 2) {
+    beta1 <- function(t) {
+      ifelse(t >= 0.33 & t < 0.66, b0, b1)
+    }
+  }
+  else {
+    stop("n_breaks should be 1 or 2")
   }
   
-  # Coeff values DGP
+  # Coefficient values DGP
   beta1_vals <- beta1(t)
   
   # Generate dependent variable y
   y <- numeric(n)
-  for(i in 1:n) {
+  for (i in 1:n) {
     y[i] <- beta1_vals[i] * x[i] + u[i]
   }
   
@@ -44,6 +57,7 @@ get.data <- function(n, phi, psi, b0, delta) {
     time = t,
     beta1_vals = beta1_vals,
     x = x,
-    u = u
+    u = u,
+    beta_dgp = c(b0, b1)
   ))
 }

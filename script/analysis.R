@@ -29,24 +29,17 @@ n <- 300
 phi <- 0.3
 psi <- 0.3
 b0 <- -0.1
-b1 <- -0.9
-sim_data <- get.data(n, phi, psi, b0, b1)
+break_sizes <- c(0.1, 0.5, 1)
+sim_data <- get.data(n, phi, psi, b0, break_sizes[1])
 
 # Number of Monte Carlo replications
-M <- 100
+M <- 5
 B <- 100
 alpha <- 0.05
 
 ###########################
 ### Bandwidth Selection ###
 ###########################
-
-# Calculate standard deviation of y for break sizes
-sd_y <- sd(sim_data$y)
-cat("Standard deviation of y:", sd_y, "\n")
-
-# Define break sizes as multiples of sd(y)
-break_sizes <- c(0.1, 0.5, 1) * sd_y
 
 # Calculate optimal bandwidths
 bandwidths <- select_bandwidths(sim_data$y, sim_data$x, n)
@@ -82,10 +75,7 @@ mc_results <- foreach(m = 1:M, .combine = rbind) %dopar% {
   beta_tilde <- oversmooth_fit$beta_hat
   
   # Calculate residuals
-  z_hat <- numeric(n)
-  for(t in 1:n) {
-    z_hat[t] <- sim_data$y[t] - sim_data$x[t] * beta_tilde[t]
-  }
+  z_hat <- sim_data$y - sim_data$x * beta_tilde
   
   # Fit AR(p) model
   ar_fit <- ar(z_hat, aic = TRUE)
@@ -122,7 +112,6 @@ mc_results <- foreach(m = 1:M, .combine = rbind) %dopar% {
   
   # Calculate confidence bands
   beta_centered <- beta_star - beta_tilde
-  #ci_beta <- beta_tilde + t(apply(beta_centered, 1, quantile, probs = c(alpha/2, 1 - alpha/2)))
   
   ci_beta <- matrix(0, n, 2)
   for(t in 1:n) {
