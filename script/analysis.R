@@ -16,8 +16,7 @@ library(np)
 
 # Load custom functions
 source('script/functions/get_data.R')
-source('script/functions/bandwidth_selection.R')
-source('script/functions/local_linear_fit.R')
+source('script/functions/estimation.R')
 
 # Set seed for reproducibility
 set.seed(123)
@@ -33,6 +32,11 @@ b0 <- -0.1
 b1 <- -0.9
 sim_data <- get.data(n, phi, psi, b0, b1)
 
+# Number of Monte Carlo replications
+M <- 100
+B <- 100
+alpha <- 0.05
+
 ###########################
 ### Bandwidth Selection ###
 ###########################
@@ -44,23 +48,6 @@ cat("Standard deviation of y:", sd_y, "\n")
 # Define break sizes as multiples of sd(y)
 break_sizes <- c(0.1, 0.5, 1) * sd_y
 
-# Epanechnikov kernel
-K <- function(u) {
-  ifelse(abs(u) <= 1, 0.75 * (1 - u^2), 0)
-}
-
-# Bühlmann (1998) oversmoothing bandwidth
-get_buhlmann_h_tilde <- function(h, n, C = 1) {
-  h_tilde <- C * h^(5/9)
-  check_B1 <- max(h_tilde, n*h_tilde*h^4, h*log(n)/h_tilde)
-  
-  cat("Bühlmann oversmoothing bandwidth check:\n")
-  cat("h_tilde:", round(h_tilde, 4), "\n")
-  cat("Assumption B1 check value:", round(check_B1, 4), "\n")
-  
-  return(h_tilde)
-}
-
 # Calculate optimal bandwidths
 bandwidths <- select_bandwidths(sim_data$y, sim_data$x, n)
 h <- bandwidths$h
@@ -69,11 +56,6 @@ h_tilde <- bandwidths$h_tilde
 ########################
 ### Monte Carlo Simulation ###
 ########################
-
-# Number of Monte Carlo replications
-M <- 100
-B <- 100
-alpha <- 0.05
 
 # Setup multiprocessing
 cores <- detectCores()
@@ -190,7 +172,8 @@ cat("\nAverage Selected h:", round(mean(mc_results$h), 4))
 cat("\nAverage Selected h_tilde:", round(mean(mc_results$h_tilde), 4))
 cat("\nAverage Selected AR order:", round(mean(mc_results$p), 2))
 
-cat("\nCorresponding plots can be found at: ", file_name_plots)
+cat("\nCorresponding plots can be found at:", file_name_plots)
+cat("\nTotal time taken:" , Sys.time() - start_time)
 
 sink()
 
@@ -222,4 +205,3 @@ par(mfrow=c(1,1))
 dev.off()
 cat("Plots saved to", file_name_plots, "\n")
 
-cat("Done, total time taken: " , Sys.time() - start_time)
