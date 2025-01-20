@@ -1,5 +1,5 @@
 # Generate data with structural break in beta1
-get.data <- function(n, phi, psi, b0, delta, n_breaks=1) {
+get.data <- function(n, phi, psi, b0, delta) {
   # Generate time points
   t <- seq(0, 1, length.out = n)
   
@@ -25,23 +25,12 @@ get.data <- function(n, phi, psi, b0, delta, n_breaks=1) {
     u[i] <- phi * u[i - 1] + eps[i] + psi * eps[i - 1]
   }
   
-  b1 <- b0 - delta
-  b2 <- b0
-  
-  if (n_breaks == 1) {
-    # Define coefficient function β₁(·) with structural break at t = 0.5 size 0.1
-    beta1 <- function(t) {
+  b1 <- b0 + delta * b0
+
+  # Define coefficient function β₁(·) with structural break at t = 0.5 size 0.1
+  beta1 <- function(t) {
       ifelse(t <= 0.5, b0, b1)  #break
     }
-  }
-  else if (n_breaks == 2) {
-    beta1 <- function(t) {
-      ifelse(t >= 0.33 & t < 0.66, b0, b1)
-    }
-  }
-  else {
-    stop("n_breaks should be 1 or 2")
-  }
   
   # Coefficient values DGP
   beta1_vals <- beta1(t)

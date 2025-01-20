@@ -13,10 +13,12 @@ library(MASS)
 library(foreach)
 library(doParallel)
 library(np)
+library(tidyr)
+library(here)
 
 # Load custom functions
-source('script/functions/get_data.R')
-source('script/functions/estimation.R')
+source(here("script", "functions", "get_data.R"))
+source(here("script", "functions", "estimation.R"))
 
 # Set seed for reproducibility
 set.seed(123)
@@ -29,12 +31,18 @@ n <- 300
 phi <- 0.3
 psi <- 0.3
 b0 <- -0.1
+
+# Break sizes are determined as constant times long run variance of independent variable x
 break_sizes <- c(0.1, 0.5, 1)
-sim_data <- get.data(n, phi, psi, b0, break_sizes[1])
+delta <- break_sizes[1]
+
+sim_data <- get.data(n, phi, psi, b0, delta)
+b1 <- sim_data$beta_dgp[2]
+plot(sim_data$time, sim_data$beta1_vals)
 
 # Number of Monte Carlo replications
-M <- 5
-B <- 100
+M <- 100
+B <- 1000
 alpha <- 0.05
 
 ###########################
@@ -42,9 +50,8 @@ alpha <- 0.05
 ###########################
 
 # Calculate optimal bandwidths
-bandwidths <- select_bandwidths(sim_data$y, sim_data$x, n)
-h <- bandwidths$h
-h_tilde <- bandwidths$h_tilde
+h <- 0.1
+h_tilde <- h ^ (5/9)
 
 ########################
 ### Monte Carlo Simulation ###
@@ -59,12 +66,10 @@ registerDoParallel(cl)
 mc_results <- foreach(m = 1:M, .combine = rbind) %dopar% {
   
   # Generate new data for each Monte Carlo replication
-  sim_data <- get.data(n, phi, psi, b0, b1)
+  sim_data <- get.data(n, phi, psi, b0, delta)
   
   # Get bandwidths for this replication
-  bandwidths <- select_bandwidths(sim_data$y, sim_data$x, n)
-  h <- bandwidths$h
-  h_tilde <- bandwidths$h_tilde
+  h_tilde <- h^(5/9)
   
   # Bootstrap procedure
   initial_fit <- local_linear_fit(sim_data$y, sim_data$x, h = h)
@@ -119,13 +124,15 @@ mc_results <- foreach(m = 1:M, .combine = rbind) %dopar% {
   }
   
   # Write results to data frame
-  data.frame(
+  tidyr::tibble(
     coverage = mean(sim_data$beta1_vals >= ci_beta[,1] & 
                          sim_data$beta1_vals <= ci_beta[,2]),
     mse = mean((sim_data$beta1_vals - beta_tilde)^2),
     h = h,
     h_tilde = h_tilde,
-    p = p
+    p = p,
+    beta_tilde = list(beta_tilde),
+    ci_beta = list(tidyr::as_tibble(ci_beta))
   )
 }
 
@@ -133,10 +140,10 @@ mc_results <- foreach(m = 1:M, .combine = rbind) %dopar% {
 stopCluster(cl)
 
 # Calculate Monte Carlo summary statistics
-
 # Write output to a file
-filename = paste0('output/data/monte_carlo_result_',format(start_time, '%d_%m_%Y_%H-%M-%S'), '.txt')
-file_name_plots <- paste0("output/plots/monte_carlo_plots_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png")
+filename <- here("output", "data", paste0("monte_carlo_result_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".txt"))
+file_name_plots <- here("output", "plots", paste0("monte_carlo_plots_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png"))
+
 sink(filename)
 cat("Results Monte Carlo Anaylsis on date:", format(start_time, '%d %m %Y %H:%M:%S'))
 
@@ -194,3 +201,11 @@ par(mfrow=c(1,1))
 dev.off()
 cat("Plots saved to", file_name_plots, "\n")
 
+# TODO: More plots on beta's and CIs
+vv <- as_tibble(mc_results$beta_tilde,.name_repair = "universal")
+plot(sim_data$time, vv$...1)
+lines(sim_data$time, sim_data$beta1_vals)
+plot(sim_data$time, vv$...2)
+lines(sim_data$time, sim_data$beta_dgp)
+plot(vv$...3)
+plot(vv$...4)
