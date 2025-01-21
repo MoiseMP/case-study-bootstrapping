@@ -23,10 +23,9 @@ local_linear_fit <- function(y, x, h, oversmooth = FALSE, h_tilde = NULL) {
     
     # Create weighted design matrix
     X <- cbind(x, x * (tau - tau[i]))
-    W <- diag(kernel_weights)
     
     # Weighted least squares estimation
-    theta <- lm.wfit(x = X, y = y, w = diag(W))$coefficients
+    theta <- lm.wfit(x = X, y = y, w = kernel_weights)$coefficients
     
     beta_hat[i] <- theta[1]
     y_hat[i] <- x[i] * beta_hat[i]
