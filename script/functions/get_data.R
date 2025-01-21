@@ -25,7 +25,8 @@ get.data <- function(n, phi, psi, b0, delta) {
     u[i] <- phi * u[i - 1] + eps[i] + psi * eps[i - 1]
   }
   
-  b1 <- b0 + delta * b0
+  # Introduce discontinuity
+  b1 <- b0 + delta * std_ar
 
   # Define coefficient function β₁(·) with structural break at t = 0.5 size 0.1
   beta1 <- function(t) {
