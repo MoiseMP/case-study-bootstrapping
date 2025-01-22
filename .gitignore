@@ -2,5 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
-output/data
-output/plots
+output/data/*
+output/plots/*
