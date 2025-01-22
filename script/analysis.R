@@ -40,8 +40,8 @@ sim_data <- get.data(n, phi, psi, b0, delta)
 b1 <- sim_data$beta_dgp[2]
 
 # Number of Monte Carlo replications
-M <- 5
-B <- 5
+M <- 50
+B <- 100
 alpha <- 0.05
 
 # Bandwidth Selection
@@ -159,7 +159,7 @@ for (i in 1:n_loops) {
   filename_results <- here("output", "data", paste0("monte_carlo_result_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".txt"))
   
   # Interactive plots in R
-  par(mfrow=c(2,2))
+  par(mfrow=c(1,2))
   
   # Plot 1: Distribution of Coverage probabilities, MSE, h and h_tilde
   
@@ -170,10 +170,11 @@ for (i in 1:n_loops) {
   hist(mc_results$mse, main="Distribution of MSE",
        xlab="Mean Squared Error", breaks=20)
   
-  hist(mc_results$h, main="Distribution of h",
-       xlab="Selected Bandwidth h", breaks=20)
-  hist(mc_results$h_tilde, main="Distribution of h_tilde",
-       xlab="Selected Bandwidth h_tilde", breaks=20)
+  # Plots are uninformative now that h is fixed
+  #hist(mc_results$h, main="Distribution of h",
+  #     xlab="Selected Bandwidth h", breaks=20)
+  #hist(mc_results$h_tilde, main="Distribution of h_tilde",
+  #     xlab="Selected Bandwidth h_tilde", breaks=20)
   
   par(mfrow=c(1,1))
   
@@ -181,7 +182,7 @@ for (i in 1:n_loops) {
   # Save plot to file
   png(file_name_plot_distributions_coverage, width=3000, height=2000, res=300)
   
-  par(mfrow=c(2,2))
+  par(mfrow=c(1,2))
   
   hist(mc_results$coverage, main="Distribution of Coverage Probabilities",
        xlab="Coverage Probability", breaks=20)
@@ -190,10 +191,10 @@ for (i in 1:n_loops) {
   hist(mc_results$mse, main="Distribution of MSE",
        xlab="Mean Squared Error", breaks=20)
   
-  hist(mc_results$h, main="Distribution of h",
-       xlab="Selected Bandwidth h", breaks=20)
-  hist(mc_results$h_tilde, main="Distribution of h_tilde",
-       xlab="Selected Bandwidth h_tilde", breaks=20)
+  #hist(mc_results$h, main="Distribution of h",
+  #     xlab="Selected Bandwidth h", breaks=20)
+  #hist(mc_results$h_tilde, main="Distribution of h_tilde",
+  #     xlab="Selected Bandwidth h_tilde", breaks=20)
   
   par(mfrow=c(1,1))
   
