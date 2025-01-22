@@ -223,16 +223,18 @@ lower_ci <- as.numeric(first_rep_ci[,1]$V1)        # Lower confidence interval
 upper_ci <- as.numeric(first_rep_ci[,2]$V2)        # Upper confidence interval
 
 # --- Interactive Plot in R ---
-plot(sim_data$time,                                 # x-axis: time
-     sim_data$beta1_vals,                          # y-axis: true beta values
-     type = "l",                                   # line plot
-     col = "black",                                # true beta in black
-     lwd = 2,                                      # line width
-     ylim = range(c(lower_ci,                      # y-axis range includes CIs
+# Add n, h, M, and B to the title
+plot(sim_data$time,                                 
+     sim_data$beta1_vals,                          
+     type = "l",                                   
+     col = "black",                                
+     lwd = 2,                                      
+     ylim = range(c(lower_ci,                     
                     upper_ci,
                     sim_data$beta1_vals,
                     first_rep_beta)),
-     main = "True Beta, Estimated Beta, and Confidence Intervals",
+     main = paste("True Beta, Estimated Beta, and Confidence Intervals\n",
+                  "n =", n, ", h =", round(h, 3), ", M =", M, ", B =", B),
      xlab = "Time",
      ylab = "Beta")
 
@@ -259,6 +261,7 @@ file_name_beta_plot <- here("Desktop", "rstudio", paste0("beta_plot_", format(st
 png(file_name_beta_plot, width = 3000, height = 2000, res = 300)
 
 # Same plot saved to file
+# Add n, h, M, and B to the title
 plot(sim_data$time,                                 
      sim_data$beta1_vals,                          
      type = "l",                                   
@@ -268,7 +271,8 @@ plot(sim_data$time,
                     upper_ci,
                     sim_data$beta1_vals,
                     first_rep_beta)),
-     main = "True Beta, Estimated Beta, and Confidence Intervals",
+     main = paste("True Beta, Estimated Beta, and Confidence Intervals\n",
+                  "n =", n, ", h =", round(h, 3), ", M =", M, ", B =", B),
      xlab = "Time",
      ylab = "Beta")
 
