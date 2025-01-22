@@ -17,8 +17,8 @@ library(tidyr)
 library(here)
 
 # Load custom functions
-source(here("script", "functions", "get_data.R"))
-source(here("script", "functions", "estimation.R"))
+source(here("Desktop", "rstudio", "get_data.R"))
+source(here("Desktop", "rstudio", "estimation.R"))
 
 # Set seed for reproducibility
 set.seed(123)
@@ -27,7 +27,7 @@ set.seed(123)
 start_time <- Sys.time()
 
 # Generate data
-n <- 300
+n <- 200
 phi <- 0.3
 psi <- 0.3
 b0 <- -0.1
@@ -41,8 +41,8 @@ b1 <- sim_data$beta_dgp[2]
 plot(sim_data$time, sim_data$beta1_vals)
 
 # Number of Monte Carlo replications
-M <- 100
-B <- 1000
+M <- 500
+B <- 500
 alpha <- 0.05
 
 ###########################
@@ -50,7 +50,7 @@ alpha <- 0.05
 ###########################
 
 # Calculate optimal bandwidths
-h <- 0.1
+h <- 0.6
 h_tilde <- h ^ (5/9)
 
 ########################
@@ -126,7 +126,7 @@ mc_results <- foreach(m = 1:M, .combine = rbind) %dopar% {
   # Write results to data frame
   tidyr::tibble(
     coverage = mean(sim_data$beta1_vals >= ci_beta[,1] & 
-                         sim_data$beta1_vals <= ci_beta[,2]),
+                      sim_data$beta1_vals <= ci_beta[,2]),
     mse = mean((sim_data$beta1_vals - beta_tilde)^2),
     h = h,
     h_tilde = h_tilde,
@@ -141,8 +141,8 @@ stopCluster(cl)
 
 # Calculate Monte Carlo summary statistics
 # Write output to a file
-filename <- here("output", "data", paste0("monte_carlo_result_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".txt"))
-file_name_plots <- here("output", "plots", paste0("monte_carlo_plots_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png"))
+filename <- here("Desktop", "rstudio", paste0("monte_carlo_result_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".txt"))
+file_name_plots <- here("Desktop", "rstudio", paste0("monte_carlo_plots_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png"))
 
 sink(filename)
 cat("Results Monte Carlo Anaylsis on date:", format(start_time, '%d %m %Y %H:%M:%S'))
@@ -175,22 +175,35 @@ sink()
 
 cat('\nResults written to file: ', filename)
 
-# Save plots to file
-png(file_name_plots, width=3000, height=2000, res = 300) 
-
-# Optional: Plot Monte Carlo results
+# Interactive plots in R
 par(mfrow=c(2,2))
 
-# Coverage probability distribution
 hist(mc_results$coverage, main="Distribution of Coverage Probabilities",
      xlab="Coverage Probability", breaks=20)
 abline(v=0.95, col="red", lty=2)
 
-# MSE distribution
 hist(mc_results$mse, main="Distribution of MSE",
      xlab="Mean Squared Error", breaks=20)
 
-# Bandwidth distributions
+hist(mc_results$h, main="Distribution of h",
+     xlab="Selected Bandwidth h", breaks=20)
+hist(mc_results$h_tilde, main="Distribution of h_tilde",
+     xlab="Selected Bandwidth h_tilde", breaks=20)
+
+par(mfrow=c(1,1))
+
+# Save to file
+png(file_name_plots, width=3000, height=2000, res=300)
+
+par(mfrow=c(2,2))
+
+hist(mc_results$coverage, main="Distribution of Coverage Probabilities",
+     xlab="Coverage Probability", breaks=20)
+abline(v=0.95, col="red", lty=2)
+
+hist(mc_results$mse, main="Distribution of MSE",
+     xlab="Mean Squared Error", breaks=20)
+
 hist(mc_results$h, main="Distribution of h",
      xlab="Selected Bandwidth h", breaks=20)
 hist(mc_results$h_tilde, main="Distribution of h_tilde",
@@ -201,11 +214,78 @@ par(mfrow=c(1,1))
 dev.off()
 cat("Plots saved to", file_name_plots, "\n")
 
-# TODO: More plots on beta's and CIs
-vv <- as_tibble(mc_results$beta_tilde,.name_repair = "universal")
-plot(sim_data$time, vv$...1)
-lines(sim_data$time, sim_data$beta1_vals)
-plot(sim_data$time, vv$...2)
-lines(sim_data$time, sim_data$beta_dgp)
-plot(vv$...3)
-plot(vv$...4)
+# Extract the first Monte Carlo replication's results for visualization
+first_rep_beta <- unlist(mc_results$beta_tilde[1])  # Estimated beta
+first_rep_ci <- mc_results$ci_beta[[1]]            # Confidence intervals
+
+# Ensure confidence intervals are numeric vectors
+lower_ci <- as.numeric(first_rep_ci[,1]$V1)        # Lower confidence interval
+upper_ci <- as.numeric(first_rep_ci[,2]$V2)        # Upper confidence interval
+
+# --- Interactive Plot in R ---
+# Add n, h, M, and B to the title
+plot(sim_data$time,                                 
+     sim_data$beta1_vals,                          
+     type = "l",                                   
+     col = "black",                                
+     lwd = 2,                                      
+     ylim = range(c(lower_ci,                     
+                    upper_ci,
+                    sim_data$beta1_vals,
+                    first_rep_beta)),
+     main = paste("True Beta, Estimated Beta, and Confidence Intervals\n",
+                  "n =", n, ", h =", round(h, 3), ", M =", M, ", B =", B),
+     xlab = "Time",
+     ylab = "Beta")
+
+# Add estimated beta
+lines(sim_data$time, 
+      first_rep_beta, 
+      col = "blue", 
+      lwd = 2,
+      lty = 2)  # dashed line
+
+# Add confidence intervals
+lines(sim_data$time, lower_ci, col = "red", lty = 3)    # lower CI
+lines(sim_data$time, upper_ci, col = "red", lty = 3)    # upper CI
+
+# Add legend
+legend("bottomright", 
+       legend = c("True Beta", "Estimated Beta", "95% CI"),
+       col = c("black", "blue", "red"),
+       lty = c(1, 2, 3),
+       lwd = c(2, 2, 1))
+
+# --- Save Plot to File ---
+file_name_beta_plot <- here("Desktop", "rstudio", paste0("beta_plot_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png"))
+png(file_name_beta_plot, width = 3000, height = 2000, res = 300)
+
+# Same plot saved to file
+# Add n, h, M, and B to the title
+plot(sim_data$time,                                 
+     sim_data$beta1_vals,                          
+     type = "l",                                   
+     col = "black",                                
+     lwd = 2,                                      
+     ylim = range(c(lower_ci,                     
+                    upper_ci,
+                    sim_data$beta1_vals,
+                    first_rep_beta)),
+     main = paste("True Beta, Estimated Beta, and Confidence Intervals\n",
+                  "n =", n, ", h =", round(h, 3), ", M =", M, ", B =", B),
+     xlab = "Time",
+     ylab = "Beta")
+
+lines(sim_data$time, first_rep_beta, col = "blue", lwd = 2, lty = 2)
+lines(sim_data$time, lower_ci, col = "red", lty = 3)    # lower CI
+lines(sim_data$time, upper_ci, col = "red", lty = 3)    # upper CI
+
+legend("bottomright", 
+       legend = c("True Beta", "Estimated Beta", "95% CI"),
+       col = c("black", "blue", "red"),
+       lty = c(1, 2, 3),
+       lwd = c(2, 2, 1))
+
+dev.off()
+
+cat("Beta plot saved to", file_name_beta_plot, "\n")
