@@ -41,7 +41,7 @@ b1 <- sim_data$beta_dgp[2]
 
 # Number of Monte Carlo replications
 M <- 50
-B <- 100
+B <- 10
 alpha <- 0.05
 
 # Bandwidth Selection
@@ -344,6 +344,8 @@ for (i in 1:n_loops) {
          col = c("blue", "red", "green"),
          lty = c(1, 2, 2),
          lwd = c(2, 1, 1))
+  
+  dev.off()
   
   # --- Save Monte Carlo and Coverage Failure Results to File ---
   sink(filename_results, split = TRUE)
