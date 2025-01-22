@@ -360,6 +360,8 @@ for (i in 1:n_loops) {
   cat('psi =', psi, "\n")
   cat('beta0 =', b0, "\n")
   cat('beta1 =', b1, "\n")
+  cat('h=', h, "\n")
+  cat('h_tilde=', h_tilde, "\n")
   
   cat("\n=== Monte Carlo and Bootstrapping Setup ===\n")
   cat('M (Monte Carlo Replications) =', M, "\n")
