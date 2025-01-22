@@ -13,9 +13,6 @@ get.data <- function(n, phi, psi, b0, delta) {
     x[i] <- 0.3 * x[i - 1] + rnorm(1)
   }
   
-  # Unconditional variance AR(1) process
-  std_ar <- sqrt(1 / (1 - 0.3 ^ 2))
-  
   # Generate ARMA(1,1) errors
   sigma_eps <- sqrt((1 - phi ^ 2) / (2 * (1 + psi ^ 2 + 2 * phi * psi)))
   eps <- rnorm(n, 0, sigma_eps)
