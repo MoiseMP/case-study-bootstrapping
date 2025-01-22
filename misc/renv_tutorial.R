@@ -11,6 +11,11 @@ renv::status()
 # View active library paths
 .libPaths()
 
+# Snapshot current state
+renv::snapshot()
+
+# Make environment in sync with Renv
+renv::restore()
 
 # To exit renv
 # renv::deactivate()
