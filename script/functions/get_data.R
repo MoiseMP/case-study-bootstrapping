@@ -5,7 +5,8 @@ get.data <- function(n, phi, psi, b0, delta) {
   
   # Generate AR(1) process
   x <- numeric(n)
-  x[1] <- rnorm(1, 10, 1)
+  std_ar <- sqrt(1 / (1 - 0.3^2))  # Standard deviation of stationary AR(1)
+  x[1] <- rnorm(1, mean = 0, sd = std_ar)
   
   # Generate AR(1) process with coefficient 0.3
   for (i in 2:n) {
