@@ -40,7 +40,7 @@ sim_data <- get.data(n, phi, psi, b0, delta)
 b1 <- sim_data$beta_dgp[2]
 
 # Number of Monte Carlo replications
-M <- 50
+M <- 10
 B <- 10
 alpha <- 0.05
 
@@ -152,11 +152,18 @@ for (i in 1:n_loops) {
                             "_delta", round(delta, 1), 
                             "_", format(start_time, "%d_%m_%Y_%H-%M-%S"), 
                             ".png")
+  file_name_txt <- paste0("n", n, 
+                          "_h", round(h, 3), 
+                          "_M", M, 
+                          "_B", B, 
+                          "_delta", round(delta, 1), 
+                          "_", format(start_time, "%d_%m_%Y_%H-%M-%S"), 
+                          ".txt")
   
   file_name_coverage <- here("output", "plots", paste0("coverage_failures_", file_name_plots))
   file_name_plot_distributions_coverage <- here("output", "plots", paste0("monte_carlo_plots_", file_name_plots))
   file_name_beta_plot <- here("output", "plots", paste0("beta_plot_", file_name_plots))
-  filename_results <- here("output", "data", paste0("monte_carlo_result_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".txt"))
+  filename_results <- here("output", "data", paste0("monte_carlo_result_", file_name_txt))
   
   # Interactive plots in R
   par(mfrow=c(1,2))
