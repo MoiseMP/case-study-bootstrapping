@@ -158,6 +158,8 @@ cat('\nB =', B)
 cat('\nalpha =', alpha)
 cat('\nbeta0 =', b0)
 cat('\nbeta1 =', b1)
+cat('Bandwidth (h) =', round(h, 3), "\n")
+cat('Oversmoothed Bandwidth (h_tilde) =', round(h_tilde, 3), "\n")
 
 cat("\n\n=== Monte Carlo Results ===")
 cat("\nAverage Coverage Probability:", round(mean(mc_results$coverage), 3))
