@@ -17,8 +17,8 @@ library(tidyr)
 library(here)
 
 # Load custom functions
-source(here("Desktop", "rstudio", "get_data.R"))
-source(here("Desktop", "rstudio", "estimation.R"))
+source(here("script", "functions", "get_data.R"))
+source(here("script", "functions", "estimation.R"))
 
 # Set seed for reproducibility
 set.seed(123)
@@ -41,8 +41,8 @@ b1 <- sim_data$beta_dgp[2]
 plot(sim_data$time, sim_data$beta1_vals)
 
 # Number of Monte Carlo replications
-M <- 500
-B <- 500
+M <- 5
+B <- 100
 alpha <- 0.05
 
 ###########################
@@ -141,8 +141,8 @@ stopCluster(cl)
 
 # Calculate Monte Carlo summary statistics
 # Write output to a file
-filename <- here("Desktop", "rstudio", paste0("monte_carlo_result_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".txt"))
-file_name_plots <- here("Desktop", "rstudio", paste0("monte_carlo_plots_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png"))
+filename <- here("output", "data", paste0("monte_carlo_result_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".txt"))
+file_name_plots <- here("output", "plots", paste0("monte_carlo_plots_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png"))
 
 sink(filename)
 cat("Results Monte Carlo Anaylsis on date:", format(start_time, '%d %m %Y %H:%M:%S'))
@@ -257,7 +257,7 @@ legend("bottomright",
        lwd = c(2, 2, 1))
 
 # --- Save Plot to File ---
-file_name_beta_plot <- here("Desktop", "rstudio", paste0("beta_plot_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png"))
+file_name_beta_plot <- here("output", "plots", paste0("beta_plot_", format(start_time, "%d_%m_%Y_%H-%M-%S"), ".png"))
 png(file_name_beta_plot, width = 3000, height = 2000, res = 300)
 
 # Same plot saved to file
