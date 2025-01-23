@@ -23,42 +23,41 @@ source(here("script", "functions", "estimation.R"))
 # Set seed for reproducibility
 set.seed(123)
 
-# Starting time
-start_time <- Sys.time()
-
-# Generate data
-n <- 200
-n_vector <- c(200, 400)
-
-phi <- 0.3
-psi <- 0.3
-b0 <- -0.1
-
-# Break sizes are determined as constant times long run variance of independent variable x
-break_sizes <- c(0.1, 0.5, 1)
-delta <- break_sizes[3]
-
-sim_data <- get.data(n, phi, psi, b0, delta)
-b1 <- sim_data$beta_dgp[2]
-
-# Number of Monte Carlo replications
-M <- 10
-B <- 10
-alpha <- 0.05
-
-# Bandwidth Selection
-h_vector <- c(0.06, 0.15, 0.24)
-h_tilde_vector <- h_vector ^ (5/9)
-n_loops <- length(h_vector)
-
+# Values of n to loop through
+n_values <- c(400)
 
 ########################
 ### Monte Carlo Simulation ###
 ########################
 print("Starting Monte Carlo simulation")
 
-
-for (n in n_vector) {
+for (n in n_values) {
+  # Starting time
+  start_time <- Sys.time()
+  
+  # Generate data size-specific parameters
+  print(paste("Running simulations for n =", n))
+  phi <- 0.3
+  psi <- 0.3
+  b0 <- -0.1
+  
+  # Break sizes are determined as constant times long run variance of independent variable x
+  break_sizes <- c(0.1, 0.5, 1)
+  delta <- break_sizes[3]
+  
+  sim_data <- get.data(n, phi, psi, b0, delta)
+  b1 <- sim_data$beta_dgp[2]
+  
+  # Number of Monte Carlo replications
+  M <- 800
+  B <- 800
+  alpha <- 0.05
+  
+  # Bandwidth Selection
+  h_vector <- c(0.06, 0.15, 0.24)
+  h_tilde_vector <- h_vector ^ (5/9)
+  n_loops <- length(h_vector)
+  
   for (i in 1:n_loops) {
     
     cat("H", i, "out of", n_loops, '\n')
