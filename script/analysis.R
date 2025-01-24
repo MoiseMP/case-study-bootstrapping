@@ -19,6 +19,7 @@ library(here)
 # Load custom functions
 source(here("script", "functions", "get_data.R"))
 source(here("script", "functions", "estimation.R"))
+source(here("script", "functions", "failure_rates.R"))
 
 # Set seed for reproducibility
 set.seed(123)
@@ -49,12 +50,12 @@ for (n in n_values) {
   b1 <- sim_data$beta_dgp[2]
   
   # Number of Monte Carlo replications
-  M <- 800
-  B <- 800
+  M <- 10
+  B <- 40
   alpha <- 0.05
   
   # Bandwidth Selection
-  h_vector <- c(0.06, 0.15, 0.24)
+  h_vector <- c(0.06) #0.15, 0.24)
   h_tilde_vector <- h_vector ^ (5/9)
   n_loops <- length(h_vector)
   
@@ -296,6 +297,8 @@ for (n in n_values) {
     
     # Create a matrix to store coverage failures at each time point
     coverage_failures <- matrix(0, nrow = M, ncol = n)
+    failure_tresholds <- data.frame(0, nrow = M, ncol = 3)
+    colnames(failure_tresholds) <-  c('left_distance_from_break', 'right_distance_from_break', 'width_interval')
     
     # For each Monte Carlo replication
     for(m in 1:M) {
@@ -307,10 +310,15 @@ for (n in n_values) {
       # Check coverage at each time point
       coverage_failures[m,] <- !(sim_data$beta1_vals >= lower_ci & 
                                    sim_data$beta1_vals <= upper_ci)
+      
+      # Check coverage width for every Monte Carlo simulation
+      failure_tresholds[m,] <- treshold_failure_rate(coverage_failures[m,], n/2, alpha) 
     }
     
     # Calculate failure rate at each time point
     failure_rates <- colMeans(coverage_failures)          # Mean failure rates over replications
+    failure_tresholds_mean <- colMeans(failure_tresholds)
+    failure_tresholds_sd <- sapply(failure_tresholds, sd)
     
     # --- Interactive Plot: Failure Rates ---
     plot(sim_data$time, failure_rates,
@@ -393,6 +401,11 @@ for (n in n_values) {
     cat("Maximum failure rate:", max(failure_rates), "\n")            # Maximum failure rate
     cat("Time point of maximum failure rate:", which.max(failure_rates), "\n") # Time of max failure
     cat("Failure rate at break point (n/2):", failure_rates[round(n/2)], "\n") # Failure rate at break
+    cat("\n")
+    cat("Mean failures:", "\n")
+    print(failure_tresholds_mean)
+    cat("SD failures:", "\n")
+    print(failure_tresholds_sd)
     
     cat("\nCorresponding plots can be found at:\n")
     cat("Beta plot:", file_name_beta_plot, "\n")
