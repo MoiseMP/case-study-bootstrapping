@@ -25,7 +25,11 @@ source(here("script", "functions", "failure_rates.R"))
 set.seed(123)
 
 # Values of n to loop through
-n_values <- c(400)
+n_values <- c(200, 400)
+
+# Init empty list failure rates
+failure_rates_list <- list()
+
 
 ########################
 ### Monte Carlo Simulation ###
@@ -50,12 +54,12 @@ for (n in n_values) {
   b1 <- sim_data$beta_dgp[2]
   
   # Number of Monte Carlo replications
-  M <- 10
-  B <- 40
+  M <- 20
+  B <- 5
   alpha <- 0.05
   
   # Bandwidth Selection
-  h_vector <- c(0.06) #0.15, 0.24)
+  h_vector <- c(0.06, 0.15, 0.24)
   h_tilde_vector <- h_vector ^ (5/9)
   n_loops <- length(h_vector)
   
@@ -320,6 +324,9 @@ for (n in n_values) {
     failure_tresholds_mean <- colMeans(failure_tresholds)
     failure_tresholds_sd <- sapply(failure_tresholds, sd)
     
+    # Store failure rates for this bandwidth
+    failure_rates_list[[as.character(h)]] <- failure_rates
+    
     # --- Interactive Plot: Failure Rates ---
     plot(sim_data$time, failure_rates,
          type = "l",
@@ -419,3 +426,27 @@ for (n in n_values) {
     cat('\nResults written to file:', filename_results, "\n")
   }
 }
+
+# Combine Failure Rates into a Single Plot
+colors <- c("blue", "red", "green")
+line_types <- c(1, 2, 3)
+break_point <- mean(sim_data$time)
+
+plot(sim_data$time, failure_rates_list[[1]], type = "l", col = colors[1], lty = line_types[1],
+     ylim = c(0, 1), xlab = "Time", ylab = "Failure Rate",
+     main = paste("Coverage Failure Rates for Different Bandwidths\n",
+                  "Break Size =", delta, ", n =", n))
+abline(h = alpha, col = "black", lty = 2) # Expected failure rate
+# Add a vertical line for the break point
+abline(v = break_point, col = "lightblue", lty = 3)
+
+for (i in 2:n_loops) {
+  lines(sim_data$time, failure_rates_list[[i]], col = colors[i], lty = line_types[i])
+}
+
+legend("topright",
+       legend = paste0("h = ", h_vector),
+       col = colors,
+       lty = line_types,
+       lwd = 2)
+
