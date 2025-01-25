@@ -31,7 +31,9 @@ treshold_failure_rate <- function(failure_rate, index_break_point, alpha) {
   left_distance_from_break <- index_break_point - index_left_point
   right_distance_from_break <- index_right_point - index_break_point
   
-  return(list(
+  return(data.frame(
+    last_failure_before_break = index_left_point,
+    first_failure_before_break = index_right_point,
     left_distance_from_break = left_distance_from_break,
     right_distance_from_break = right_distance_from_break,
     width_interval = width_interval)

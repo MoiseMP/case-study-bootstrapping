@@ -54,7 +54,7 @@ for (n in n_values) {
   b1 <- sim_data$beta_dgp[2]
   
   # Number of Monte Carlo replications
-  M <- 20
+  M <- 5
   B <- 5
   alpha <- 0.05
   
@@ -160,6 +160,12 @@ for (n in n_values) {
                               "_delta", round(delta, 1), 
                               "_", format(start_time, "%d_%m_%Y_%H-%M-%S"), 
                               ".png")
+    
+    file_name_plot_simple <- paste0("n", n, 
+                                    "_M", M, 
+                                    "_B", B, 
+                                    "_", format(start_time, "%d_%m_%Y_%H-%M-%S"), 
+                                    ".png")
     file_name_txt <- paste0("n", n, 
                             "_h", round(h, 3), 
                             "_M", M, 
@@ -167,6 +173,7 @@ for (n in n_values) {
                             "_delta", round(delta, 1), 
                             "_", format(start_time, "%d_%m_%Y_%H-%M-%S"), 
                             ".txt")
+    
     
     file_name_coverage <- here("output", "plots", paste0("coverage_failures_", file_name_plots))
     file_name_plot_distributions_coverage <- here("output", "plots", paste0("monte_carlo_plots_", file_name_plots))
@@ -301,9 +308,8 @@ for (n in n_values) {
     
     # Create a matrix to store coverage failures at each time point
     coverage_failures <- matrix(0, nrow = M, ncol = n)
-    failure_tresholds <- data.frame(0, nrow = M, ncol = 3)
-    colnames(failure_tresholds) <-  c('left_distance_from_break', 'right_distance_from_break', 'width_interval')
-    
+    failure_tresholds <- data.frame()
+
     # For each Monte Carlo replication
     for(m in 1:M) {
       beta_tilde <- unlist(mc_results$beta_tilde[m])       # Estimated beta from replication
@@ -316,7 +322,8 @@ for (n in n_values) {
                                    sim_data$beta1_vals <= upper_ci)
       
       # Check coverage width for every Monte Carlo simulation
-      failure_tresholds[m,] <- treshold_failure_rate(coverage_failures[m,], n/2, alpha) 
+      result_treshold_failure_rate <- treshold_failure_rate(coverage_failures[m,], n/2, alpha)
+      failure_tresholds <- rbind(failure_tresholds, result_treshold_failure_rate)
     }
     
     # Calculate failure rate at each time point
@@ -425,28 +432,66 @@ for (n in n_values) {
     # Final message in console
     cat('\nResults written to file:', filename_results, "\n")
   }
+  # Combine Failure Rates into a Single Plot
+  
+  filename_single_plot_failure_rates <- here("output", "plots", 
+                                             paste0("single_plot_failure_rates_", 
+                                                    file_name_plot_simple))
+  
+  png(filename_single_plot_failure_rates, width = 3000, height = 2000, res=300)
+  
+  colors <- c("blue", "red", "green")
+  line_types <- c(1, 2, 3)
+  break_point <- mean(sim_data$time)
+  
+  plot(sim_data$time, failure_rates_list[[1]], type = "l", col = colors[1], lty = line_types[1],
+       ylim = c(0, 1), xlab = "Time", ylab = "Failure Rate",
+       main = paste("Coverage Failure Rates for Different Bandwidths\n",
+                    "Break Size =", delta, ", n =", n))
+  abline(h = alpha, col = "black", lty = 2) # Expected failure rate
+  # Add a vertical line for the break point
+  abline(v = break_point, col = "lightblue", lty = 3)
+  
+  for (i in 2:n_loops) {
+    lines(sim_data$time, failure_rates_list[[i]], col = colors[i], lty = line_types[i])
+  }
+  
+  legend("topright",
+         legend = paste0("h = ", h_vector),
+         col = colors,
+         lty = line_types,
+         lwd = 2)
+  
+  dev.off()
+  
+  # Print to terminal
+  
+  # Combine Failure Rates into a Single Plot
+  colors <- c("blue", "red", "green")
+  line_types <- c(1, 2, 3)
+  break_point <- mean(sim_data$time)
+  
+  plot(sim_data$time, failure_rates_list[[1]], type = "l", col = colors[1], lty = line_types[1],
+       ylim = c(0, 1), xlab = "Time", ylab = "Failure Rate",
+       main = paste("Coverage Failure Rates for Different Bandwidths\n",
+                    "Break Size =", delta, ", n =", n))
+  abline(h = alpha, col = "black", lty = 2) # Expected failure rate
+  # Add a vertical line for the break point
+  abline(v = break_point, col = "lightblue", lty = 3)
+  
+  for (i in 2:n_loops) {
+    lines(sim_data$time, failure_rates_list[[i]], col = colors[i], lty = line_types[i])
+  }
+  
+  legend("topright",
+         legend = paste0("h = ", h_vector),
+         col = colors,
+         lty = line_types,
+         lwd = 2)
+  
+  dev.off()
 }
 
-# Combine Failure Rates into a Single Plot
-colors <- c("blue", "red", "green")
-line_types <- c(1, 2, 3)
-break_point <- mean(sim_data$time)
 
-plot(sim_data$time, failure_rates_list[[1]], type = "l", col = colors[1], lty = line_types[1],
-     ylim = c(0, 1), xlab = "Time", ylab = "Failure Rate",
-     main = paste("Coverage Failure Rates for Different Bandwidths\n",
-                  "Break Size =", delta, ", n =", n))
-abline(h = alpha, col = "black", lty = 2) # Expected failure rate
-# Add a vertical line for the break point
-abline(v = break_point, col = "lightblue", lty = 3)
 
-for (i in 2:n_loops) {
-  lines(sim_data$time, failure_rates_list[[i]], col = colors[i], lty = line_types[i])
-}
-
-legend("topright",
-       legend = paste0("h = ", h_vector),
-       col = colors,
-       lty = line_types,
-       lwd = 2)
 
