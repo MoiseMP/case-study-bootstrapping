@@ -25,7 +25,7 @@ source(here("script", "functions", "failure_rates.R"))
 set.seed(123)
 
 # Values of n to loop through
-n_values <- c(200, 400)
+n_values <- c(200) #400)
 
 # Init empty list failure rates
 failure_rates_list <- list()
@@ -48,14 +48,14 @@ for (n in n_values) {
   
   # Break sizes are determined as constant times long run variance of independent variable x
   break_sizes <- c(0.1, 0.5, 1)
-  delta <- break_sizes[3]
+  delta <- break_sizes[2]
   
   sim_data <- get.data(n, phi, psi, b0, delta)
   b1 <- sim_data$beta_dgp[2]
   
   # Number of Monte Carlo replications
-  M <- 5
-  B <- 5
+  M <- 800
+  B <- 800
   alpha <- 0.05
   
   # Bandwidth Selection
@@ -164,6 +164,7 @@ for (n in n_values) {
     file_name_plot_simple <- paste0("n", n, 
                                     "_M", M, 
                                     "_B", B, 
+                                    "_delta", delta,
                                     "_", format(start_time, "%d_%m_%Y_%H-%M-%S"), 
                                     ".png")
     file_name_txt <- paste0("n", n, 
