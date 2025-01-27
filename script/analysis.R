@@ -25,7 +25,8 @@ source(here("script", "functions", "failure_rates.R"))
 set.seed(123)
 
 # Values of n to loop through
-n_values <- c(200) #400)
+
+n_values <- c(200, 400)
 
 # Init empty list failure rates
 failure_rates_list <- list()
@@ -48,14 +49,14 @@ for (n in n_values) {
   
   # Break sizes are determined as constant times long run variance of independent variable x
   break_sizes <- c(0.1, 0.5, 1)
-  delta <- break_sizes[2]
+  delta <- break_sizes[1]
   
   sim_data <- get.data(n, phi, psi, b0, delta)
   b1 <- sim_data$beta_dgp[2]
   
   # Number of Monte Carlo replications
-  M <- 800
-  B <- 800
+  M <- 200
+  B <- 10
   alpha <- 0.05
   
   # Bandwidth Selection
@@ -331,6 +332,7 @@ for (n in n_values) {
     failure_rates <- colMeans(coverage_failures)          # Mean failure rates over replications
     failure_tresholds_mean <- colMeans(failure_tresholds)
     failure_tresholds_sd <- sapply(failure_tresholds, sd)
+    failure_tresholds_median <- sapply(failure_tresholds, median)
     
     # Store failure rates for this bandwidth
     failure_rates_list[[as.character(h)]] <- failure_rates
@@ -421,6 +423,8 @@ for (n in n_values) {
     print(failure_tresholds_mean)
     cat("SD failures:", "\n")
     print(failure_tresholds_sd)
+    cat("Mean failures:", "\n")
+    print(failure_tresholds_median)
     
     cat("\nCorresponding plots can be found at:\n")
     cat("Beta plot:", file_name_beta_plot, "\n")
