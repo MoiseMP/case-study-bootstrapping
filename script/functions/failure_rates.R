@@ -1,5 +1,5 @@
+# Should be single function.
 treshold_failure_rate <- function(failure_rate, index_break_point, alpha) {
-  
   # Check fail
   length_failure_rate <- length(failure_rate)
   failure_rate_pre_break <- failure_rate[0:index_break_point]
