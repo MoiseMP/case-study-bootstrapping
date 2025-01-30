@@ -17,7 +17,7 @@ get.data <- function(n, phi, psi, b0, delta) {
   sigma_eps <- sqrt((1 - phi ^ 2) / (2 * (1 + psi ^ 2 + 2 * phi * psi)))
   eps <- rnorm(n, 0, sigma_eps)
   u <- numeric(n)
-  u[1] <- eps[1]
+  u[1] <- eps[1] # Initialize process
   
   for (i in 2:n) {
     u[i] <- phi * u[i - 1] + eps[i] + psi * eps[i - 1]
