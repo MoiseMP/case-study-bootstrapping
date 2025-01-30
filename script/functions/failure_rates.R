@@ -2,11 +2,11 @@
 treshold_failure_rate <- function(failure_rate, index_break_point, alpha) {
   # Check fail
   length_failure_rate <- length(failure_rate)
-  failure_rate_pre_break <- failure_rate[0:index_break_point]
+  failure_rate_pre_break <- failure_rate[1:index_break_point]
   failure_rate_post_break <- failure_rate[index_break_point:length_failure_rate]
   
   # Initialize Indices break points
-  index_left_point <- 0
+  index_left_point <- 1
   index_right_point <- length_failure_rate
   
   # Pre break
